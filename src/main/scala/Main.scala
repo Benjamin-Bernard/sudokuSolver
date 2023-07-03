@@ -1,9 +1,11 @@
-import zio._
-import zio.Console._
-import zio.json._
-import java.nio.charset.StandardCharsets
-import zio.nio.file.{Path, Files}
+import zio.*
+import zio.Console.*
+import zio.json.*
 
+import java.nio.charset.StandardCharsets
+import zio.nio.file.{Files, Path}
+
+import scala.annotation.tailrec
 
 type SudokuGrid = List[List[Option[Int]]]
 
@@ -21,19 +23,58 @@ object Main extends ZIOAppDefault {
       case Right(data) => ZIO.fromOption(data.get("grid")).orElse(ZIO.succeed(List.empty[List[Option[Int]]]))
     }
 
-  def isValid(sudokuGrid: SudokuGrid, row: Int, col: Int, num: Int): Boolean = {
-        def isInRow(row: Int, col: Int): Boolean = {
-            sudokuGrid(row)(col).contains(num)
-        }
+  def prettySudokuGrid(grid: SudokuGrid): String = {
+    val horizontalLine = "+-------+-------+-------+\n"
+    val formattedRows = grid.map { row =>
+      val formattedRow = row.map {
+        case Some(value) => value.toString
+        case None => "0"
+      }.grouped(3).map(_.mkString(" ")).mkString(" | ")
+      s"| $formattedRow |\n"
+    }
+    val formattedGrid = formattedRows.grouped(3).map(_.mkString).mkString(horizontalLine)
+    s"$horizontalLine$formattedGrid$horizontalLine"
+  }
 
-        def isInCol(row: Int, col: Int): Boolean = {
-            sudokuGrid(row)(col).contains(num)
-        }
 
-        def isInBloc(): Boolean = {
-            sudokuGrid(row)
-        }
+  def isValid(grid: SudokuGrid, row: Int, col: Int, num: Int): Boolean = {
+  !isInRow(grid, row, num) && !isInCol(grid, col, num) && !isInBox(grid, row, col, num)
+}
 
+def isInRow(grid: SudokuGrid, row: Int, num: Int): Boolean = {
+  grid(row).contains(Some(num))
+}
+
+def isInCol(grid: SudokuGrid, col: Int, num: Int): Boolean = {
+  grid.map(_(col)).contains(Some(num))
+}
+
+def isInBox(grid: SudokuGrid, row: Int, col: Int, num: Int): Boolean = {
+  val boxRow = row - row % 3
+  val boxCol = col - col % 3
+  grid.slice(boxRow, boxRow + 3).flatMap(_.slice(boxCol, boxCol + 3)).contains(Some(num))
+}
+
+
+def solve(sudokuGrid: SudokuGrid): Option[SudokuGrid] = {
+    def solveHelper(grid: SudokuGrid, row: Int, col: Int): Option[SudokuGrid] = {
+      if (row == 9) {
+        Some(grid)
+      } else if (col == 9) {
+        solveHelper(grid, row + 1, 0)
+      } else if (grid(row)(col).isEmpty) {
+        val validValues = (1 to 9).filter(value => isValid(grid, row, col, value))
+        val solutions = validValues.flatMap { value =>
+          val updatedGrid = grid.updated(row, grid(row).updated(col, Some(value)))
+          solveHelper(updatedGrid, row, col + 1)
+        }
+        solutions.headOption
+      } else {
+        solveHelper(grid, row, col + 1)
+      }
+    }
+
+    solveHelper(sudokuGrid, 0, 0)
   }
 
 
@@ -44,8 +85,13 @@ object Main extends ZIOAppDefault {
       _ <-  Console.printLine(s"You entered: $path")
       jsonString <- readFile(path)
       _ <-  Console.printLine(jsonString)
-      sudokuGrid  <- parseSudokuGrid(jsonString)
-      _ <-  Console.printLine(sudokuGrid)
-      // Add your Sudoku solver logic here, utilizing ZIO and interacting with the ZIO Console
+      sudokuGrid <- parseSudokuGrid(jsonString)
+      _ <- Console.printLine("Provided Sudoku:")
+      _ <- Console.printLine(prettySudokuGrid(sudokuGrid))
+      solution = solve(sudokuGrid)
+      _ <- solution match {
+        case Some(grid) => Console.printLine("Solution:") *> Console.printLine(prettySudokuGrid(grid))
+        case None => Console.printLine("No solution found")
+      }
     } yield ()
 }
