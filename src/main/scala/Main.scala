@@ -5,7 +5,6 @@ import zio.json.*
 import java.nio.charset.StandardCharsets
 import zio.nio.file.{Files, Path}
 
-import scala.annotation.tailrec
 
 type SudokuGrid = List[List[Option[Int]]]
 
@@ -63,11 +62,13 @@ object Main extends ZIOAppDefault {
         def solveHelper(grid: SudokuGrid, row: Int, col: Int): Option[SudokuGrid] = {
             if (row == 9) {
                 Some(grid)
-            } 
+            }
+                // Go to the next row
             else if (col == 9) {
                 solveHelper(grid, row + 1, 0)
             } 
             else if (grid(row)(col).isEmpty) {
+                // Try all valid values
                 val validValues = (1 to 9).filter(value => isValid(grid, row, col, value))
                 val solutions = validValues.flatMap { value =>
                 val updatedGrid = grid.updated(row, grid(row).updated(col, Some(value)))
@@ -76,10 +77,10 @@ object Main extends ZIOAppDefault {
                 solutions.headOption
             } 
             else {
+                // Go to the next column
                 solveHelper(grid, row, col + 1)
             }
         }
-
         solveHelper(sudokuGrid, 0, 0)
     }
 
@@ -90,7 +91,6 @@ object Main extends ZIOAppDefault {
         path <- Console.readLine
         _ <-  Console.printLine(s"You entered: $path")
         jsonString <- readFile(path)
-        _ <-  Console.printLine(jsonString)
         sudokuGrid <- parseSudokuGrid(jsonString)
         _ <- Console.printLine("Provided Sudoku:")
         _ <- Console.printLine(prettySudokuGrid(sudokuGrid))
