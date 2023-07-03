@@ -21,6 +21,21 @@ object Main extends ZIOAppDefault {
       case Right(data) => ZIO.fromOption(data.get("grid")).orElse(ZIO.succeed(List.empty[List[Option[Int]]]))
     }
 
+  def isValid(sudokuGrid: SudokuGrid, row: Int, col: Int, num: Int): Boolean = {
+        def isInRow(row: Int, col: Int): Boolean = {
+            sudokuGrid(row)(col).contains(num)
+        }
+
+        def isInCol(row: Int, col: Int): Boolean = {
+            sudokuGrid(row)(col).contains(num)
+        }
+
+        def isInBloc(): Boolean = {
+            sudokuGrid(row)
+        }
+
+  }
+
 
   def run: ZIO[Any, Throwable, Unit] =
     for {
