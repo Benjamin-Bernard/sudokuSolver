@@ -21,6 +21,19 @@ object Main extends ZIOAppDefault {
       case Right(data) => ZIO.fromOption(data.get("grid")).orElse(ZIO.succeed(List.empty[List[Option[Int]]]))
     }
 
+  def prettySudokuGrid(grid: SudokuGrid): String = {
+    val horizontalLine = "+-------+-------+-------+\n"
+    val formattedRows = grid.map { row =>
+      val formattedRow = row.map {
+        case Some(value) => value.toString
+        case None => "0"
+      }.grouped(3).map(_.mkString(" ")).mkString(" | ")
+      s"| $formattedRow |\n"
+    }
+    val formattedGrid = formattedRows.grouped(3).map(_.mkString).mkString(horizontalLine)
+    s"$horizontalLine$formattedGrid$horizontalLine"
+  }
+
 
   def run: ZIO[Any, Throwable, Unit] =
     for {
@@ -28,9 +41,9 @@ object Main extends ZIOAppDefault {
       path <- Console.readLine
       _ <-  Console.printLine(s"You entered: $path")
       jsonString <- readFile(path)
-      _ <-  Console.printLine(jsonString)
+      // _ <-  Console.printLine(jsonString)
       sudokuGrid  <- parseSudokuGrid(jsonString)
-      _ <-  Console.printLine(sudokuGrid)
+      _ <- Console.printLine(prettySudokuGrid(sudokuGrid))
       // Add your Sudoku solver logic here, utilizing ZIO and interacting with the ZIO Console
     } yield ()
 }
