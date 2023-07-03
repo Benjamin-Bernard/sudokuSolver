@@ -5,14 +5,18 @@ This is a Sudoku solver implemented in Scala using functional programming princi
 To run the Sudoku solver, you will need the following:
 
 Scala 3.3.0
+
 sbt
 
 ## Getting Started
 Follow these steps to run the Sudoku solver:
 
 Clone the Git repository: git clone <repository-url>
-Change into the project directory: cd sudoku-solver
+
+Change into the project directory: cd sudokusolver
+
 Build the project: sbt compile
+
 Run the solver: sbt run
 
 ## Data Structure
