@@ -1,6 +1,14 @@
 ## Sudoku Solver
 This is a Sudoku solver implemented in Scala using functional programming principles and ZIO for error handling and console interaction. The solver takes a Sudoku problem in JSON format, attempts to solve it recursively, and displays the solution if one exists.
 
+## Team
+
+Benjamin BERNARD
+
+François CHARVET
+
+Stanley DELLON
+
 ## Requirements
 To run the Sudoku solver, you will need the following:
 
@@ -58,5 +66,7 @@ The solver does not modify the original Sudoku problem grid. It operates on an i
 The Sudoku solver uses the following external libraries:
 
 zio - Provides the core functionality for effectful programming, error handling, and console interaction.
+
 zio-json - Provides JSON parsing and serialization capabilities for ZIO.
+
 zio-nio - Offers file reading capabilities for ZIO.
